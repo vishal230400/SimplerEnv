@@ -238,9 +238,14 @@ class RT1Inference:
         """
         Perform Monte Carlo Dropout inference with multiple stochastic forward passes.
         
+        Args:
+            image: Input image (H, W, 3) as uint8 numpy array.
+            task_description: Optional task instruction string.
+            num_samples: Number of MC forward passes.
+
         Returns:
-            raw_actions_list: List of raw action dicts from each sample.
-            mean_action: Mean of processed actions.
+            raw_actions_list: List of raw action dicts from each pass.
+            mean_action: Dict of mean processed actions.
         """
         raw_actions_list = []
         processed_actions = []
@@ -250,15 +255,18 @@ class RT1Inference:
             raw_actions_list.append(raw_action)
             processed_actions.append(action)
 
-        print(raw_actions_list)
-        print(processed_actions)
-        # Aggregate predictions (mean or median or any other stat)
+        # Aggregate predictions
         mean_action = {}
+
         for key in processed_actions[0].keys():
-            stacked = np.stack([a[key] for a in processed_actions])
+            stacked = np.stack([a[key] for a in processed_actions])  # shape: (num_samples, dim)
             mean_action[key] = np.mean(stacked, axis=0)
 
+            std = np.std(stacked, axis=0)
+            print(f"[Uncertainty] Std of {key}: {np.round(std, 4)}")
+
         return raw_actions_list, mean_action
+
 
     def visualize_epoch(self, predicted_raw_actions: Sequence[np.ndarray], images: Sequence[np.ndarray], save_path: str) -> None:
         images = [self._resize_image(image) for image in images]
