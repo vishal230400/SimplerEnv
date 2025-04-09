@@ -229,6 +229,37 @@ class RT1Inference:
 
         return raw_action, action
 
+    def mc_dropout_inference(
+        self,
+        image: np.ndarray,
+        task_description: Optional[str] = None,
+        num_samples: int = 10
+    ) -> tuple[list[dict[str, np.ndarray]], dict[str, np.ndarray]]:
+        """
+        Perform Monte Carlo Dropout inference with multiple stochastic forward passes.
+        
+        Returns:
+            raw_actions_list: List of raw action dicts from each sample.
+            mean_action: Mean of processed actions.
+        """
+        raw_actions_list = []
+        processed_actions = []
+
+        for _ in range(num_samples):
+            raw_action, action = self.step(image, task_description)
+            raw_actions_list.append(raw_action)
+            processed_actions.append(action)
+
+        print(raw_actions_list)
+        print(processed_actions)
+        # Aggregate predictions (mean or median or any other stat)
+        mean_action = {}
+        for key in processed_actions[0].keys():
+            stacked = np.stack([a[key] for a in processed_actions])
+            mean_action[key] = np.mean(stacked, axis=0)
+
+        return raw_actions_list, mean_action
+
     def visualize_epoch(self, predicted_raw_actions: Sequence[np.ndarray], images: Sequence[np.ndarray], save_path: str) -> None:
         images = [self._resize_image(image) for image in images]
         predicted_action_name_to_values_over_time = defaultdict(list)
