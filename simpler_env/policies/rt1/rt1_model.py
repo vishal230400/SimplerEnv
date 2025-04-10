@@ -335,8 +335,8 @@ class RT1Inference:
         action_keys = [
             "terminate_episode",
             "world_vector",
-            "rotation_delta",
-            "gripper_closedness_action",
+            "rot_axangle",
+            "gripper",
         ]
 
         action_stats = defaultdict(lambda: {"mean": [], "std": []})
@@ -373,4 +373,3 @@ class RT1Inference:
         handles, labels = axs[figure_layout[1][0]].get_legend_handles_labels()
         fig.legend(handles, labels, loc="upper right")
         plt.savefig(save_path)
-
