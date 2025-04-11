@@ -435,4 +435,5 @@ class RT1Inference:
         handles, labels = axs[figure_layout[1][0]].get_legend_handles_labels()
         fig.legend(handles, labels, loc="upper right")
         plt.savefig(save_path)
+        plt.show()
         plt.close()
