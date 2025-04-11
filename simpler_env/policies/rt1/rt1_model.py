@@ -314,6 +314,65 @@ class RT1Inference:
         plt.legend()
         plt.savefig(save_path)
     
+    # def visualize_epoch_with_uncertainty(
+    #     self,
+    #     mean_actions: Sequence[dict[str, np.ndarray]],
+    #     std_actions: Sequence[dict[str, np.ndarray]],
+    #     images: Sequence[np.ndarray],
+    #     save_path: str,
+    # ) -> None:
+    #     """
+    #     Visualizes mean and std of action predictions over an episode.
+        
+    #     Args:
+    #         mean_actions: List of mean action dicts at each timestep.
+    #         std_actions: List of std action dicts at each timestep.
+    #         images: List of input images (for reference visualization).
+    #         save_path: Path to save the output visualization.
+    #     """
+    #     images = [self._resize_image(image) for image in images]
+
+    #     action_keys = [
+    #         "terminate_episode",
+    #         "world_vector",
+    #         "rot_axangle",
+    #         "gripper",
+    #     ]
+
+    #     action_stats = defaultdict(lambda: {"mean": [], "std": []})
+    #     figure_layout = []
+
+    #     for t in range(len(mean_actions)):
+    #         for k in action_keys:
+    #             for i in range(mean_actions[t][k].shape[0]):
+    #                 key = f"{k}_{i}"
+    #                 action_stats[key]["mean"].append(mean_actions[t][k][i])
+    #                 action_stats[key]["std"].append(std_actions[t][k][i])
+    #                 if key not in figure_layout:
+    #                     figure_layout.append(key)
+
+    #     figure_layout = [["image"] * len(figure_layout), figure_layout]
+    #     stacked = tf.concat(tf.unstack(images[::3], axis=0), 1)
+
+    #     plt.rcParams.update({"font.size": 12})
+    #     fig, axs = plt.subplot_mosaic(figure_layout)
+    #     fig.set_size_inches([45, 10])
+
+    #     for k in action_stats:
+    #         x = np.arange(len(action_stats[k]["mean"]))
+    #         mean = np.array(action_stats[k]["mean"])
+    #         std = np.array(action_stats[k]["std"])
+    #         axs[k].plot(x, mean, label="Mean")
+    #         axs[k].fill_between(x, mean - std, mean + std, color="gray", alpha=0.4, label="±1 Std")
+    #         axs[k].set_title(k)
+    #         axs[k].set_xlabel("Time Step")
+
+    #     axs["image"].imshow(stacked.numpy())
+    #     axs["image"].set_xlabel("Time in episode (subsampled)")
+
+    #     handles, labels = axs[figure_layout[1][0]].get_legend_handles_labels()
+    #     fig.legend(handles, labels, loc="upper right")
+    #     plt.savefig(save_path)
     def visualize_epoch_with_uncertainty(
         self,
         mean_actions: Sequence[dict[str, np.ndarray]],
@@ -351,6 +410,7 @@ class RT1Inference:
                     if key not in figure_layout:
                         figure_layout.append(key)
 
+        # Layout: 1 row for images, 1 row for each stat
         figure_layout = [["image"] * len(figure_layout), figure_layout]
         stacked = tf.concat(tf.unstack(images[::3], axis=0), 1)
 
@@ -362,8 +422,10 @@ class RT1Inference:
             x = np.arange(len(action_stats[k]["mean"]))
             mean = np.array(action_stats[k]["mean"])
             std = np.array(action_stats[k]["std"])
+
             axs[k].plot(x, mean, label="Mean")
             axs[k].fill_between(x, mean - std, mean + std, color="gray", alpha=0.4, label="±1 Std")
+            axs[k].plot(x, std, linestyle='--', color='red', label="Std Dev")  # <-- New line plot
             axs[k].set_title(k)
             axs[k].set_xlabel("Time Step")
 
@@ -373,3 +435,4 @@ class RT1Inference:
         handles, labels = axs[figure_layout[1][0]].get_legend_handles_labels()
         fig.legend(handles, labels, loc="upper right")
         plt.savefig(save_path)
+        plt.close()
